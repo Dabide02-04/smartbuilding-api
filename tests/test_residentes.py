@@ -17,3 +17,42 @@ def test_get_residente_inexistente():
     assert response.json() == {
         "detail": "Residente no encontrado"
     }
+def test_get_residentes():
+    response = client.get("/residentes")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 1,
+            "full_name": "Juan Perez",
+            "tower": 1,
+            "apartment": 101
+        },
+        {
+            "id": 2,
+            "full_name": "Maria Gomez",
+            "tower": 2,
+            "apartment": 305
+        }
+    ]
+
+
+def test_get_residentes_por_torre():
+    response = client.get("/residentes?tower=1")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 1,
+            "full_name": "Juan Perez",
+            "tower": 1,
+            "apartment": 101
+        }
+    ]
+
+
+def test_get_residentes_torre_sin_coincidencias():
+    response = client.get("/residentes?tower=99")
+
+    assert response.status_code == 200
+    assert response.json() == []

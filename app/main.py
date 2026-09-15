@@ -19,8 +19,15 @@ def root():
     return {"message": "Bienvenido a SmartBuilding API"}
 
 @app.get("/residentes")
-def get_residentes():
-    return residentes
+def get_residentes(tower: int | None = None):
+    if tower is None:
+        return residentes
+
+    return [
+        residente
+        for residente in residentes
+        if residente["tower"] == tower
+    ]
 
 @app.get("/residentes/{residente_id}")
 def get_residente_por_id(residente_id: int):
