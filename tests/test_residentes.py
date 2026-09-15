@@ -86,3 +86,56 @@ def test_crear_residente_sin_nombre():
     )
 
     assert response.status_code == 422
+def test_actualizar_residente():
+    response = client.put(
+        "/residentes/1",
+        json={
+            "full_name": "Juan Perez Actualizado",
+            "tower": 2,
+            "apartment": 202
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": 1,
+        "full_name": "Juan Perez Actualizado",
+        "tower": 2,
+        "apartment": 202
+    }
+
+
+def test_actualizar_residente_inexistente():
+    response = client.put(
+        "/residentes/99",
+        json={
+            "full_name": "Carlos Lopez",
+            "tower": 1,
+            "apartment": 205
+        }
+    )
+
+    assert response.status_code == 404
+
+
+def test_actualizar_residente_datos_incompletos():
+    response = client.put(
+        "/residentes/1",
+        json={
+            "tower": 2,
+            "apartment": 202
+        }
+    )
+
+    assert response.status_code == 422
+def test_actualizar_residente_tipo_invalido():
+    response = client.put(
+        "/residentes/1",
+        json={
+            "full_name": "Juan Perez",
+            "tower": "torre",
+            "apartment": 202
+        }
+    )
+
+    assert response.status_code == 422

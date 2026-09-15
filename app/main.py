@@ -58,3 +58,17 @@ def crear_residente(residente: ResidenteCreate):
     residentes.append(nuevo_residente)
 
     return nuevo_residente
+@app.put("/residentes/{residente_id}")
+def actualizar_residente(residente_id: int, residente_actualizado: ResidenteCreate):
+    for residente in residentes:
+        if residente["id"] == residente_id:
+            residente["full_name"] = residente_actualizado.full_name
+            residente["tower"] = residente_actualizado.tower
+            residente["apartment"] = residente_actualizado.apartment
+
+            return residente
+
+    raise HTTPException(
+        status_code=404,
+        detail="Residente no encontrado"
+    )
