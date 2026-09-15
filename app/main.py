@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 app = FastAPI()
 residentes = [
     {
@@ -27,3 +27,8 @@ def get_residente_por_id(residente_id: int):
     for residente in residentes:
         if residente["id"] == residente_id:
             return residente
+
+    raise HTTPException(
+        status_code=404,
+        detail="Residente no encontrado"
+    )

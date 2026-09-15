@@ -10,3 +10,10 @@ def test_get_residente_por_id():
         "tower": 1,
         "apartment": 101
     }
+def test_get_residente_inexistente():
+    response = client.get("/residentes/99")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Residente no encontrado"
+    }
