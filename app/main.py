@@ -1,5 +1,12 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 app = FastAPI()
+class ResidenteCreate(BaseModel):
+    full_name: str
+    tower: int
+    apartment: int
+
+
 residentes = [
     {
         "id": 1,
@@ -39,3 +46,15 @@ def get_residente_por_id(residente_id: int):
         status_code=404,
         detail="Residente no encontrado"
     )
+@app.post("/residentes", status_code=201)
+def crear_residente(residente: ResidenteCreate):
+    nuevo_residente = {
+        "id": len(residentes) + 1,
+        "full_name": residente.full_name,
+        "tower": residente.tower,
+        "apartment": residente.apartment
+    }
+
+    residentes.append(nuevo_residente)
+
+    return nuevo_residente

@@ -56,3 +56,33 @@ def test_get_residentes_torre_sin_coincidencias():
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_crear_residente():
+    response = client.post(
+        "/residentes",
+        json={
+            "full_name": "Carlos Lopez",
+            "tower": 1,
+            "apartment": 205
+        }
+    )
+
+    assert response.status_code == 201
+
+    assert response.json() == {
+        "id": 3,
+        "full_name": "Carlos Lopez",
+        "tower": 1,
+        "apartment": 205
+    }
+def test_crear_residente_sin_nombre():
+    response = client.post(
+        "/residentes",
+        json={
+            "tower": 1,
+            "apartment": 205
+        }
+    )
+
+    assert response.status_code == 422
