@@ -139,3 +139,20 @@ def test_actualizar_residente_tipo_invalido():
     )
 
     assert response.status_code == 422
+def test_eliminar_residente():
+    response = client.delete("/residentes/2")
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+def test_eliminar_residente_inexistente():
+    response = client.delete("/residentes/99")
+
+    assert response.status_code == 404
+
+
+def test_get_residente_despues_de_eliminar():
+    response = client.get("/residentes/2")
+
+    assert response.status_code == 404

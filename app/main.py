@@ -72,3 +72,14 @@ def actualizar_residente(residente_id: int, residente_actualizado: ResidenteCrea
         status_code=404,
         detail="Residente no encontrado"
     )
+@app.delete("/residentes/{residente_id}", status_code=204)
+def eliminar_residente(residente_id: int):
+    for residente in residentes:
+        if residente["id"] == residente_id:
+            residentes.remove(residente)
+            return
+
+    raise HTTPException(
+        status_code=404,
+        detail="Residente no encontrado"
+    )
