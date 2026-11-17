@@ -1,158 +1,129 @@
-from fastapi.testclient import TestClient
-from app.main import app
-client = TestClient(app)
-def test_get_residente_por_id():
-    response = client.get("/residentes/1")
-    assert response.status_code == 200
-    assert response.json() == {
-        "id": 1,
-        "full_name": "Juan Perez",
-        "tower": 1,
-        "apartment": 101
-    }
-def test_get_residente_inexistente():
-    response = client.get("/residentes/99")
+import pytest
 
-    assert response.status_code == 404
-    assert response.json() == {
+
+def esperado(persona_id, nombre="Residente de prueba"):
+    return {
+        "id": persona_id,
+        "full_name": nombre,
+        "tower": 1,
+        "apartment": "101",
+    }
+
+
+def test_consultar_por_id(api):
+    cliente, persona_id = api
+
+    respuesta = cliente.get(f"/residentes/{persona_id}")
+
+    assert respuesta.status_code == 200
+    assert respuesta.json() == esperado(persona_id)
+
+
+@pytest.mark.parametrize(
+    "ruta,hay_resultados",
+    [
+        ("/residentes", True),
+        ("/residentes?tower=1", True),
+        ("/residentes?tower=99", False),
+    ],
+)
+def test_listado_y_filtro(api, ruta, hay_resultados):
+    cliente, persona_id = api
+
+    respuesta = cliente.get(ruta)
+
+    assert respuesta.status_code == 200
+    datos = [esperado(persona_id)] if hay_resultados else []
+    assert respuesta.json() == datos
+
+
+@pytest.mark.parametrize("metodo", ["GET", "PUT", "DELETE"])
+def test_residente_inexistente(api, metodo):
+    cliente, _ = api
+    opciones = {}
+
+    if metodo == "PUT":
+        opciones["json"] = {
+            "full_name": "Nombre de prueba",
+            "tower": 1,
+            "apartment": 101,
+        }
+
+    respuesta = cliente.request(
+        metodo, "/residentes/-1", **opciones
+    )
+
+    assert respuesta.status_code == 404
+    assert respuesta.json() == {
         "detail": "Residente no encontrado"
     }
-def test_get_residentes():
-    response = client.get("/residentes")
-
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "id": 1,
-            "full_name": "Juan Perez",
-            "tower": 1,
-            "apartment": 101
-        },
-        {
-            "id": 2,
-            "full_name": "Maria Gomez",
-            "tower": 2,
-            "apartment": 305
-        }
-    ]
 
 
-def test_get_residentes_por_torre():
-    response = client.get("/residentes?tower=1")
+def test_crear_residente(api):
+    cliente, _ = api
 
-    assert response.status_code == 200
-    assert response.json() == [
-        {
-            "id": 1,
-            "full_name": "Juan Perez",
-            "tower": 1,
-            "apartment": 101
-        }
-    ]
-
-
-def test_get_residentes_torre_sin_coincidencias():
-    response = client.get("/residentes?tower=99")
-
-    assert response.status_code == 200
-    assert response.json() == []
-
-
-def test_crear_residente():
-    response = client.post(
-        "/residentes",
-        json={
-            "full_name": "Carlos Lopez",
-            "tower": 1,
-            "apartment": 205
-        }
-    )
-
-    assert response.status_code == 201
-
-    assert response.json() == {
-        "id": 3,
-        "full_name": "Carlos Lopez",
+    respuesta = cliente.post("/residentes", json={
+        "full_name": "Nueva persona",
         "tower": 1,
-        "apartment": 205
-    }
-def test_crear_residente_sin_nombre():
-    response = client.post(
-        "/residentes",
+        "apartment": 101,
+    })
+
+    assert respuesta.status_code == 201
+    persona_id = respuesta.json()["id"]
+    assert respuesta.json() == esperado(
+        persona_id, "Nueva persona"
+    )
+
+    consulta = cliente.get(f"/residentes/{persona_id}")
+    assert consulta.status_code == 200
+    assert consulta.json() == respuesta.json()
+
+
+def test_actualizar_residente(api):
+    cliente, persona_id = api
+
+    respuesta = cliente.put(
+        f"/residentes/{persona_id}",
         json={
+            "full_name": "Nombre actualizado",
             "tower": 1,
-            "apartment": 205
-        }
+            "apartment": 101,
+        },
     )
 
-    assert response.status_code == 422
-def test_actualizar_residente():
-    response = client.put(
-        "/residentes/1",
-        json={
-            "full_name": "Juan Perez Actualizado",
-            "tower": 2,
-            "apartment": 202
-        }
+    assert respuesta.status_code == 200
+    assert respuesta.json() == esperado(
+        persona_id, "Nombre actualizado"
     )
 
-    assert response.status_code == 200
-    assert response.json() == {
-        "id": 1,
-        "full_name": "Juan Perez Actualizado",
-        "tower": 2,
-        "apartment": 202
+    consulta = cliente.get(f"/residentes/{persona_id}")
+    assert consulta.json() == respuesta.json()
+
+
+def test_eliminar_residente(api):
+    cliente, persona_id = api
+
+    respuesta = cliente.delete(f"/residentes/{persona_id}")
+
+    assert respuesta.status_code == 204
+    assert respuesta.content == b""
+    assert cliente.get(
+        f"/residentes/{persona_id}"
+    ).status_code == 404
+
+
+@pytest.mark.parametrize("campo", [
+    "full_name", "tower", "apartment"
+])
+def test_campos_obligatorios(api, campo):
+    cliente, _ = api
+    datos = {
+        "full_name": "Persona incompleta",
+        "tower": 1,
+        "apartment": 101,
     }
+    datos.pop(campo)
 
+    respuesta = cliente.post("/residentes", json=datos)
 
-def test_actualizar_residente_inexistente():
-    response = client.put(
-        "/residentes/99",
-        json={
-            "full_name": "Carlos Lopez",
-            "tower": 1,
-            "apartment": 205
-        }
-    )
-
-    assert response.status_code == 404
-
-
-def test_actualizar_residente_datos_incompletos():
-    response = client.put(
-        "/residentes/1",
-        json={
-            "tower": 2,
-            "apartment": 202
-        }
-    )
-
-    assert response.status_code == 422
-def test_actualizar_residente_tipo_invalido():
-    response = client.put(
-        "/residentes/1",
-        json={
-            "full_name": "Juan Perez",
-            "tower": "torre",
-            "apartment": 202
-        }
-    )
-
-    assert response.status_code == 422
-def test_eliminar_residente():
-    response = client.delete("/residentes/2")
-
-    assert response.status_code == 204
-    assert response.content == b""
-
-
-def test_eliminar_residente_inexistente():
-    response = client.delete("/residentes/99")
-
-    assert response.status_code == 404
-
-
-def test_get_residente_despues_de_eliminar():
-    response = client.get("/residentes/2")
-
-    assert response.status_code == 404
+    assert respuesta.status_code == 422

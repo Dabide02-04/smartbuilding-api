@@ -13,3 +13,13 @@ __pycache__/
 *.log
 #Claves
 .env
+# Credenciales locales
+.env
+.env.*
+!.env.example
+
+# Copias de respaldo
+*.bak
+
+# Archivos temporales de LibreOffice
+.~lock.*#
