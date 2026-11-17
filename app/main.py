@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from app.api_vision import router as vision_router
 from app.conexion import conectar
 app = FastAPI()
+app.include_router(vision_router)
 class ResidenteCreate(BaseModel):
     full_name: str
     tower: int

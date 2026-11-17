@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import Detector from './Detector'
 
 export default function App() {
   const [residentes, setResidentes] = useState([])
@@ -106,6 +107,7 @@ export default function App() {
           </tbody>
         </table>
       )}
+	<Detector />
     </main>
   )
 }

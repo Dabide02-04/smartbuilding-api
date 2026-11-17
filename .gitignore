@@ -23,3 +23,12 @@ __pycache__/
 
 # Archivos temporales de LibreOffice
 .~lock.*#
+
+# Vision
+modelos/
+videos/
+resultados/
+runs/
+*.pt
+*.onnx
+*.safetensors
